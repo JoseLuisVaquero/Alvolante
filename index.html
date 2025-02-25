@@ -162,33 +162,26 @@
       const tarjeta = boton.closest('.resultado');
 
       html2canvas(tarjeta).then(canvas => {
-        canvas.toBlob(blob => {
-          if (blob) {
-            const archivo = new File([blob], 'resultado.png', { type: 'image/png' });
-            compartirArchivo(archivo);
-          } else {
-            alert('No se pudo generar la imagen. Intenta de nuevo.');
-          }
-        }, 'image/png');
+        const imagen = canvas.toDataURL('image/png');
+
+        // Crear un enlace temporal para descargar la imagen
+        const enlace = document.createElement('a');
+        enlace.href = imagen;
+        enlace.download = 'resultado.png';
+        enlace.click();
+
+        // Compartir la imagen por WhatsApp
+        const mensaje = encodeURIComponent('Mira este resultado de Al Volante:');
+        const urlWhatsApp = `https://api.whatsapp.com/send?text=${mensaje}`;
+        const ventanaWhatsApp = window.open(urlWhatsApp, '_blank');
+
+        if (!ventanaWhatsApp) {
+          alert('No se pudo abrir WhatsApp. Asegúrate de tener la aplicación instalada.');
+        }
       }).catch(error => {
         console.error('Error al generar la imagen:', error);
         alert('Hubo un error al generar la imagen. Intenta de nuevo.');
       });
-    }
-
-    function compartirArchivo(archivo) {
-      if (navigator.share) {
-        navigator.share({
-          files: [archivo],
-          title: 'Resultado de Al Volante',
-          text: 'Mira este resultado:',
-        })
-        .then(() => console.log('Archivo compartido con éxito'))
-        .catch((error) => console.error('Error al compartir:', error));
-      } else {
-        const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent('Mira este resultado de Al Volante:')}`;
-        window.open(urlWhatsApp, '_blank');
-      }
     }
   </script>
 </body>
