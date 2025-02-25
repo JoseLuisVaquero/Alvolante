@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Al Volante</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      background-color: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      max-width: 500px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .menu-btn {
+      width: 100%;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-documentacion { background-color: #ffc107; color: black; }
+    .btn-estacionamiento { background-color: #dc3545; color: white; }
+    .btn-registro { background-color: #007bff; color: white; }
+    .btn-buscar { background-color: #28a745; color: white; }
+    .menu-btn:hover {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+    #loading {
+      display: none;
+      margin-top: 20px;
+    }
+    .resultado {
+      margin-top: 20px;
+      text-align: left;
+      background: #f1f1f1;
+      padding: 15px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="mb-4">🚗 Al Volante</h2>
+
+    <!-- Menú en el nuevo orden -->
+    <button class="menu-btn btn-documentacion" onclick="window.location.href='https://drive.google.com/drive/folders/1JuLJLFH1acOpMAPUi-JGmXiwxyF5xBS-?usp=drive_link'">📄 Documentación</button>
+    <button class="menu-btn btn-estacionamiento" onclick="window.location.href='https://www.google.com/maps/d/edit?mid=1YqFhx6aDj50cz86Qvft1LigvYmlTQio&usp=sharing'">🅿️ Estacionamiento</button>
+    <button class="menu-btn btn-registro" onclick="window.location.href='https://forms.gle/xy3TmruVVXMZpRJN6'">📋 Registro Alumno</button>
+    <button class="menu-btn btn-buscar" onclick="mostrarBusqueda()">🔍 Buscar Alumno</button>
+
+    <!-- Sección de búsqueda -->
+    <div id="buscarSection" style="display: none;">
+      <input type="text" id="idAlumno" class="form-control mb-3" placeholder="Ingresa los últimos 4 dígitos">
+      <button class="btn btn-primary w-100" onclick="buscarAlumno()">Buscar</button>
+      <button class="btn btn-secondary w-100 mt-3" onclick="limpiarResultados()">Limpiar resultados</button>
+      <div id="loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p>Cargando resultados...</p>
+      </div>
+      <div id="resultados"></div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS y dependencias -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+  <!-- Script para buscar alumno y compartir tarjetas -->
+  <script>
+    function mostrarBusqueda() {
+      const buscarSection = document.getElementById('buscarSection');
+      buscarSection.style.display = 'block';
+    }
+
+    function buscarAlumno() {
+      const id = document.getElementById('idAlumno').value.trim();
+      const resultados = document.getElementById('resultados');
+      const loading = document.getElementById('loading');
+
+      // Validar el ID
+      if (!id || id.length !== 4 || isNaN(id)) {
+        resultados.innerHTML = '<div class="alert alert-warning">Por favor, ingresa un ID válido de 4 dígitos.</div>';
+        return;
+      }
+
+      // Mostrar spinner
+      resultados.innerHTML = '';
+      loading.style.display = 'block';
+
+      // Construir la URL de la API
+      const url = 'https://script.google.com/macros/s/AKfycbzy3IoBnval02Z1E842S2k1VODX-qMHm4N5Cyf5SLXAHKuSM1s_9IJq5RxgFNwX7qH8dg/exec?id=' + id;
+
+      // Hacer una solicitud a la API
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          // Ocultar spinner
+          loading.style.display = 'none';
+
+          // Mostrar resultados
+          if (data.error) {
+            resultados.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+          } else if (data.length > 0) {
+            resultados.innerHTML = data.map((row, index) => `
+              <div class="resultado">
+                <h5>Resultado ${index + 1}</h5>
+                <p><i class="bi bi-person"></i> <strong>Nombre:</strong> ${row[2]}</p>
+                <p><i class="bi bi-list-ol"></i> <strong>Número de Clase:</strong> ${row[3]}</p>
+                <p><i class="bi bi-calendar"></i> <strong>Fecha de Clase:</strong> ${row[4]}</p>
+                <p><i class="bi bi-person-badge"></i> <strong>Instructor:</strong> ${row[5]}</p>
+                <p><i class="bi bi-geo-alt"></i> <strong>Zona:</strong> ${row[6]}</p>
+                <p><i class="bi bi-check-circle"></i> <strong>Evaluación volante:</strong> ${row[7]}</p>
+                <p><i class="bi bi-check-circle"></i> <strong>Evaluación cambios:</strong> ${row[8]}</p>
+                <p><i class="bi bi-check-circle"></i> <strong>Evaluación pedales:</strong> ${row[9]}</p>
+                <p><i class="bi bi-chat"></i> <strong>Observaciones:</strong> ${row[10]}</p>
+                <button class="btn btn-sm btn-outline-success mt-2" onclick="compartirTarjeta(this)">
+                  <i class="bi bi-whatsapp"></i> Compartir
+                </button>
+              </div>
+            `).join('');
+          } else {
+            resultados.innerHTML = '<div class="alert alert-warning">No se encontraron resultados.</div>';
+          }
+        })
+        .catch(error => {
+          // Ocultar spinner y mostrar error
+          loading.style.display = 'none';
+          resultados.innerHTML = '<div class="alert alert-danger">Hubo un error al buscar.</div>';
+          console.error('Error:', error);
+        });
+    }
+
+    function limpiarResultados() {
+      document.getElementById('resultados').innerHTML = '';
+      document.getElementById('idAlumno').value = '';
+    }
+
+    function compartirTarjeta(boton) {
+      const tarjeta = boton.closest('.resultado');
+
+      html2canvas(tarjeta).then(canvas => {
+        canvas.toBlob(blob => {
+          if (blob) {
+            const archivo = new File([blob], 'resultado.png', { type: 'image/png' });
+            compartirArchivo(archivo);
+          } else {
+            alert('No se pudo generar la imagen. Intenta de nuevo.');
+          }
+        }, 'image/png');
+      }).catch(error => {
+        console.error('Error al generar la imagen:', error);
+        alert('Hubo un error al generar la imagen. Intenta de nuevo.');
+      });
+    }
+
+    function compartirArchivo(archivo) {
+      if (navigator.share) {
+        navigator.share({
+          files: [archivo],
+          title: 'Resultado de Al Volante',
+          text: 'Mira este resultado:',
+        })
+        .then(() => console.log('Archivo compartido con éxito'))
+        .catch((error) => console.error('Error al compartir:', error));
+      } else {
+        const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent('Mira este resultado de Al Volante:')}`;
+        window.open(urlWhatsApp, '_blank');
+      }
+    }
+  </script>
+</body>
+</html>
